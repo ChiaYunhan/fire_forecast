@@ -17,17 +17,21 @@ FIRE Forecast Engine — a Python CLI tool that runs Monte Carlo simulations aga
 
 ## Architecture
 
-**Current state:** Pre-implementation. Model files exist as empty placeholders. See `docs/ROADMAP.md` for the phased build plan and `docs/PROJECT_BRIEF.md` for full design spec.
+**Current state:** Phase 2 (Strategy pattern implementation). Core domain models complete (Week 1). See `docs/ROADMAP.md` for phased build plan.
 
-**Entry point:** `main.py` — CLI entry point, will load scenarios and run simulations.
+**Entry point:** `main.py` — CLI that creates a sample profile and prints financial summary
 
-**Domain models** in `src/models/`:
+**Implemented domain models** in `src/models.py`:
 - `Asset` — individual investment (name, allocation, expected return, volatility)
 - `Portfolio` — composition of Assets (Portfolio *has* Assets, not inheritance)
 - `FinancialProfile` — complete financial situation (income, expenses, savings rate, portfolio, age, target FIRE age)
+  - Validates that `expenses_rate + savings_rate ≈ 1.0`
+  - Methods: `annual_savings()`, `annual_expenses()`
 
-**Planned components** (not yet implemented):
+**In progress** (`src/Strategy/`):
 - `InvestmentStrategy` ABC with Aggressive/Balanced/Conservative implementations (Strategy pattern)
+
+**Planned components**:
 - `SimulationEngine` with setup/simulate_year/collect_results lifecycle (Template Method pattern)
 - `MonteCarloRunner` — executes N simulation runs with randomized market returns
 - `SimulationResults` — aggregates outcomes, percentile calculations
