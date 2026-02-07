@@ -4,14 +4,14 @@
 
 Build the core objects that represent your financial world.
 
-- [ ] Create project structure with `pyproject.toml` and virtual env
-- [ ] Implement `Asset` class (name, allocation, expected return, volatility)
-- [ ] Implement `Portfolio` class (composition of Assets, total value, allocation methods)
-- [ ] Implement `FinancialProfile` class (income, expenses, savings rate, portfolio, age, target FIRE age)
-- [ ] Write tests for core domain classes
-- [ ] Basic CLI entry point that creates a profile and prints a summary
+- [x] Create project structure with `pyproject.toml` and virtual env
+- [x] Implement `Asset` class (name, allocation, expected return, volatility)
+- [x] Implement `Portfolio` class (composition of Assets, total value, allocation methods)
+- [x] Implement `FinancialProfile` class (income, expenses, savings rate, portfolio, age, target FIRE age)
+- [x] Write tests for core domain classes
+- [x] Basic CLI entry point that creates a profile and prints a summary
 
-**Key OOP focus:** Classes, encapsulation, composition (Portfolio *has* Assets, Profile *has* Portfolio)
+**Key OOP focus:** Classes, encapsulation, composition (Portfolio _has_ Assets, Profile _has_ Portfolio)
 
 ## Week 2: Simulation Engine (~8-10 hours)
 
