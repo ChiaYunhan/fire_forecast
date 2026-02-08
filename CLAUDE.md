@@ -17,9 +17,9 @@ FIRE Forecast Engine — a Python CLI tool that runs Monte Carlo simulations aga
 
 ## Architecture
 
-**Current state:** Phase 2 (Strategy pattern implementation). Core domain models complete (Week 1). See `docs/ROADMAP.md` for phased build plan.
+**Current state:** Phase 3 (Monte Carlo implementation). Weeks 1-2 complete: domain models, strategies, and single simulation engine working. See `docs/ROADMAP.md` for phased build plan.
 
-**Entry point:** `main.py` — CLI that creates a sample profile and prints financial summary
+**Entry point:** `main.py` — CLI that creates a sample profile, runs simulations with all three strategies, and displays results
 
 **Implemented domain models** in `src/models.py`:
 - `Asset` — individual investment (name, allocation, expected return, volatility)
@@ -28,11 +28,19 @@ FIRE Forecast Engine — a Python CLI tool that runs Monte Carlo simulations aga
   - Validates that `expenses_rate + savings_rate ≈ 1.0`
   - Methods: `annual_savings()`, `annual_expenses()`
 
-**In progress** (`src/Strategy/`):
-- `InvestmentStrategy` ABC with Aggressive/Balanced/Conservative implementations (Strategy pattern)
+**Implemented investment strategies** in `src/Strategy/`:
+- `InvestmentStrategy` ABC — defines interface for all strategies
+- `AggressiveStrategy` — 1.5x risk multiplier, higher volatility tolerance
+- `BalancedStrategy` — 1.1x risk multiplier, moderate approach
+- `ConservativeStrategy` — 0.8x risk multiplier, capital preservation focus
+
+**Implemented simulation engine** in `src/SimulationEngine.py`:
+- `SimulationEngine` — Template Method pattern with run/setup/simulate_year/collect_results lifecycle
+- Applies annual returns using selected strategy
+- Calculates FIRE achievement (portfolio ≥ 25x annual expenses using 4% rule)
+- Returns comprehensive results dict
 
 **Planned components**:
-- `SimulationEngine` with setup/simulate_year/collect_results lifecycle (Template Method pattern)
 - `MonteCarloRunner` — executes N simulation runs with randomized market returns
 - `SimulationResults` — aggregates outcomes, percentile calculations
 - `ScenarioFactory` — creates profiles/strategies from YAML config (Factory pattern)
