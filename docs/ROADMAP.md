@@ -4,29 +4,29 @@
 
 Build the core objects that represent your financial world.
 
-- [ ] Create project structure with `pyproject.toml` and virtual env
-- [ ] Implement `Asset` class (name, allocation, expected return, volatility)
-- [ ] Implement `Portfolio` class (composition of Assets, total value, allocation methods)
-- [ ] Implement `FinancialProfile` class (income, expenses, savings rate, portfolio, age, target FIRE age)
-- [ ] Write tests for core domain classes
-- [ ] Basic CLI entry point that creates a profile and prints a summary
+- [x] Create project structure with `pyproject.toml` and virtual env
+- [x] Implement `Asset` class (name, allocation, expected return, volatility)
+- [x] Implement `Portfolio` class (composition of Assets, total value, allocation methods)
+- [x] Implement `FinancialProfile` class (income, expenses, savings rate, portfolio, age, target FIRE age)
+- [x] Write tests for core domain classes
+- [x] Basic CLI entry point that creates a profile and prints a summary
 
-**Key OOP focus:** Classes, encapsulation, composition (Portfolio *has* Assets, Profile *has* Portfolio)
+**Key OOP focus:** Classes, encapsulation, composition (Portfolio _has_ Assets, Profile _has_ Portfolio)
 
-## Week 2: Simulation Engine (~8-10 hours)
+## Week 2: Simulation Engine (~8-10 hours) ✅ COMPLETE
 
 Build the engine using Strategy and Template Method patterns.
 
-- [ ] Define `InvestmentStrategy` abstract base class
-- [ ] Implement `AggressiveStrategy` (high equity, high volatility)
-- [ ] Implement `BalancedStrategy` (mixed allocation)
-- [ ] Implement `ConservativeStrategy` (bond-heavy, low volatility)
-- [ ] Build `SimulationEngine` with Template Method pattern:
+- [x] Define `InvestmentStrategy` abstract base class
+- [x] Implement `AggressiveStrategy` (high equity, high volatility)
+- [x] Implement `BalancedStrategy` (mixed allocation)
+- [x] Implement `ConservativeStrategy` (bond-heavy, low volatility)
+- [x] Build `SimulationEngine` with Template Method pattern:
   - `setup()` — initialize starting state
   - `simulate_year()` — apply returns, contributions, withdrawals
   - `collect_results()` — gather final outcomes
-- [ ] Single simulation run working end-to-end
-- [ ] Tests for strategies and simulation engine
+- [x] Single simulation run working end-to-end
+- [x] Tests for strategies and simulation engine
 
 **Key OOP focus:** Strategy pattern, Template Method, abstract classes, polymorphism
 

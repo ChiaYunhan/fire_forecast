@@ -1,4 +1,8 @@
 from src.models import Asset, Portfolio, FinancialProfile
+from src.SimulationEngine import SimulationEngine
+from src.Strategy.aggressive import AggressiveStrategy
+from src.Strategy.balanced import BalancedStrategy
+from src.Strategy.conservative import ConservativeStrategy
 
 
 def main():
@@ -32,6 +36,7 @@ def main():
     )
 
     print_summary(profile)
+    run_simulations(profile)
 
 
 def print_summary(profile: FinancialProfile):
@@ -60,6 +65,37 @@ def print_summary(profile: FinancialProfile):
         )
 
     print("\n" + "=" * 50)
+
+
+def run_simulations(profile: FinancialProfile):
+    """Run simulations with all three strategies and compare results."""
+    print("\n" + "=" * 50)
+    print("  Running Simulations (Single Run per Strategy)")
+    print("=" * 50)
+
+    strategies = [
+        AggressiveStrategy(),
+        BalancedStrategy(),
+        ConservativeStrategy(),
+    ]
+
+    for strategy in strategies:
+        engine = SimulationEngine(profile, strategy)
+        results = engine.run()
+
+        print(f"\n  Strategy: {strategy.name}")
+        print(f"  Risk Multiplier: {strategy.get_risk_multiplier()}x")
+        print("-" * 50)
+        print(f"  Final Portfolio Value: ${results['final_portfolio_value']:>15,.2f}")
+        print(f"  FIRE Target (25x expenses): ${results['fire_target']:>12,.2f}")
+        print(f"  FIRE Achieved: {results['fire_achieved']}")
+        print(f"  Years Simulated: {results['years_simulated']}")
+        print(f"  Final Age: {results['final_age']}")
+
+    print("\n" + "=" * 50)
+    print("  Note: Single runs show high variance due to randomness.")
+    print("  Monte Carlo (Phase 3) will run thousands of simulations.")
+    print("=" * 50 + "\n")
 
 
 if __name__ == "__main__":

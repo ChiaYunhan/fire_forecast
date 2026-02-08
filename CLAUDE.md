@@ -17,18 +17,30 @@ FIRE Forecast Engine — a Python CLI tool that runs Monte Carlo simulations aga
 
 ## Architecture
 
-**Current state:** Pre-implementation. Model files exist as empty placeholders. See `docs/ROADMAP.md` for the phased build plan and `docs/PROJECT_BRIEF.md` for full design spec.
+**Current state:** Phase 3 (Monte Carlo implementation). Weeks 1-2 complete: domain models, strategies, and single simulation engine working. See `docs/ROADMAP.md` for phased build plan.
 
-**Entry point:** `main.py` — CLI entry point, will load scenarios and run simulations.
+**Entry point:** `main.py` — CLI that creates a sample profile, runs simulations with all three strategies, and displays results
 
-**Domain models** in `src/models/`:
+**Implemented domain models** in `src/models.py`:
 - `Asset` — individual investment (name, allocation, expected return, volatility)
 - `Portfolio` — composition of Assets (Portfolio *has* Assets, not inheritance)
 - `FinancialProfile` — complete financial situation (income, expenses, savings rate, portfolio, age, target FIRE age)
+  - Validates that `expenses_rate + savings_rate ≈ 1.0`
+  - Methods: `annual_savings()`, `annual_expenses()`
 
-**Planned components** (not yet implemented):
-- `InvestmentStrategy` ABC with Aggressive/Balanced/Conservative implementations (Strategy pattern)
-- `SimulationEngine` with setup/simulate_year/collect_results lifecycle (Template Method pattern)
+**Implemented investment strategies** in `src/Strategy/`:
+- `InvestmentStrategy` ABC — defines interface for all strategies
+- `AggressiveStrategy` — 1.5x risk multiplier, higher volatility tolerance
+- `BalancedStrategy` — 1.1x risk multiplier, moderate approach
+- `ConservativeStrategy` — 0.8x risk multiplier, capital preservation focus
+
+**Implemented simulation engine** in `src/SimulationEngine.py`:
+- `SimulationEngine` — Template Method pattern with run/setup/simulate_year/collect_results lifecycle
+- Applies annual returns using selected strategy
+- Calculates FIRE achievement (portfolio ≥ 25x annual expenses using 4% rule)
+- Returns comprehensive results dict
+
+**Planned components**:
 - `MonteCarloRunner` — executes N simulation runs with randomized market returns
 - `SimulationResults` — aggregates outcomes, percentile calculations
 - `ScenarioFactory` — creates profiles/strategies from YAML config (Factory pattern)
