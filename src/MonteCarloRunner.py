@@ -53,11 +53,11 @@ class MonteCarloRunner:
         if successful_runs:
             fire_ages = [r["fire_age"] for r in successful_runs]
             fire_age_percentiles = {
-                10: int(np.percentile(fire_ages, 10)),
-                25: int(np.percentile(fire_ages, 25)),
-                50: int(np.percentile(fire_ages, 50)),
-                75: int(np.percentile(fire_ages, 75)),
-                90: int(np.percentile(fire_ages, 90)),
+                10: round(np.percentile(fire_ages, 10)),
+                25: round(np.percentile(fire_ages, 25)),
+                50: round(np.percentile(fire_ages, 50)),
+                75: round(np.percentile(fire_ages, 75)),
+                90: round(np.percentile(fire_ages, 90)),
             }
             median_fire_age = fire_age_percentiles[50]
 
@@ -65,8 +65,6 @@ class MonteCarloRunner:
             starting_age = self.engine.profile.age
             years_to_fire = [r["fire_age"] - starting_age for r in successful_runs]
             average_years_to_fire = float(np.mean(years_to_fire))
-
-        from src.models import MonteCarloSimResults
 
         return MonteCarloSimResults(
             success_rate=success_rate,
