@@ -10,6 +10,7 @@ class MonteCarloRunner:
         np.random.seed(seed)
         self.engine = engine
         self.n_simulations = n_simulations
+        self.seed = seed  # Store seed for reproducibility
         self.results = []
 
     def run_simulations(self) -> List[Dict]:
@@ -105,6 +106,6 @@ class MonteCarloRunner:
             strategy_name=self.engine.strategy.name,
             input_params=self.engine.profile,
             n_simulations=self.n_simulations,
-            np_seed=42,  # Will fix in later task
+            np_seed=self.seed,  # Use stored seed instead of hardcoded 42
             annual_trajectories=annual_trajectories,
         )

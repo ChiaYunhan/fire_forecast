@@ -217,3 +217,57 @@ class TestMonteCarloAnnualTrajectories:
         # Each trajectory should have values for each year
         years_simulated = sample_profile.target_age - sample_profile.age
         assert all(len(traj) == years_simulated for traj in results.annual_trajectories)
+
+
+class TestMonteCarloIntegration:
+    def test_seed_preservation(self, sample_profile):
+        """Seed is preserved in results for reproducibility"""
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(sample_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=50, seed=12345)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        assert results.np_seed == 12345
+
+    def test_deterministic_results_with_same_seed(self, sample_profile):
+        """Same seed produces identical results"""
+        strategy = BalancedStrategy()
+
+        # Run 1
+        engine1 = SimulationEngine(sample_profile, strategy)
+        runner1 = MonteCarloRunner(engine1, n_simulations=50, seed=999)
+        runner1.run_simulations()
+        results1 = runner1.aggregate_results()
+
+        # Run 2 with same seed
+        engine2 = SimulationEngine(sample_profile, strategy)
+        runner2 = MonteCarloRunner(engine2, n_simulations=50, seed=999)
+        runner2.run_simulations()
+        results2 = runner2.aggregate_results()
+
+        # Results should be identical
+        assert results1.success_rate == results2.success_rate
+        assert results1.portfolio_percentiles[50] == results2.portfolio_percentiles[50]
+
+    def test_complete_monte_carlo_workflow(self, sample_profile):
+        """End-to-end Monte Carlo workflow produces valid results"""
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(sample_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
+
+        # Run simulations
+        raw_results = runner.run_simulations()
+        assert len(raw_results) == 100
+
+        # Aggregate results
+        summary = runner.aggregate_results()
+
+        # Verify all fields are populated correctly
+        assert summary.n_simulations == 100
+        assert summary.strategy_name == "Balanced"
+        assert 0.0 <= summary.success_rate <= 1.0
+        assert len(summary.portfolio_percentiles) == 5
+        assert summary.worst_case_portfolio <= summary.best_case_portfolio
+        assert len(summary.annual_trajectories) == 100
