@@ -30,17 +30,17 @@ Build the engine using Strategy and Template Method patterns.
 
 **Key OOP focus:** Strategy pattern, Template Method, abstract classes, polymorphism
 
-## Week 3: Monte Carlo & Analysis (~8-10 hours)
+## Week 3: Monte Carlo & Analysis (~8-10 hours) ✅ COMPLETE
 
 Scale to thousands of runs and extract meaningful insights.
 
-- [ ] `MonteCarloRunner` class that executes N simulation runs
-- [ ] Randomized market returns using historical distributions
-- [ ] `SimulationResults` class to aggregate outcomes
-- [ ] Percentile calculations (10th, 25th, 50th, 75th, 90th)
-- [ ] FIRE probability calculator ("X% chance of retiring by age Y")
-- [ ] Sensitivity analysis (how does changing savings rate affect outcomes?)
-- [ ] Tests for Monte Carlo logic and results aggregation
+- [x] `MonteCarloRunner` class that executes N simulation runs
+- [x] Randomized market returns using historical distributions
+- [x] `SimulationResults` class to aggregate outcomes
+- [x] Percentile calculations (10th, 25th, 50th, 75th, 90th)
+- [x] FIRE probability calculator ("X% chance of retiring by age Y")
+- [x] Sensitivity analysis (how does changing savings rate affect outcomes?)
+- [x] Tests for Monte Carlo logic and results aggregation
 
 **Key OOP focus:** Inheritance, polymorphism (different market models), encapsulation of results
 
