@@ -69,6 +69,8 @@ class MonteCarloRunner:
 
         # Calculate risk metrics
         # Shortfall: average gap below FIRE target for failed runs
+        # Note: Shortfall only considers runs that never achieved FIRE (fire_achieved=False)
+        # because we're measuring the gap for scenarios where FIRE was not reached
         shortfall_amount = None
         if failed_runs:
             fire_target = self.engine.profile.annual_expenses() / 0.04

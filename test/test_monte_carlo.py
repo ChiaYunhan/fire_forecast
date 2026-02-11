@@ -173,3 +173,31 @@ class TestMonteCarloRiskMetrics:
         assert results.max_drawdown >= 0.0
         # Max drawdown is a percentage, shouldn't exceed 1.0 typically
         assert results.max_drawdown <= 1.0
+
+    def test_max_drawdown_zero_with_starting_value_zero(self, sample_portfolio):
+        """Max drawdown handles zero starting portfolio gracefully"""
+        zero_portfolio = Portfolio(
+            composition=sample_portfolio.composition,
+            total_value=0.0,
+            allocation_methods=sample_portfolio.allocation_methods,
+        )
+
+        profile = FinancialProfile(
+            income=100000.0,
+            expenses_rate=0.6,
+            savings_rate=0.4,
+            portfolio=zero_portfolio,
+            age=30,
+            target_age=35,
+        )
+
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=10, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        # Max drawdown should be valid (0.0-1.0) even with zero starting value
+        assert results.max_drawdown >= 0.0
+        assert results.max_drawdown <= 1.0
