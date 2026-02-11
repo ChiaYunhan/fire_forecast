@@ -43,6 +43,7 @@ class MonteCarloRunner:
 
         # Calculate FIRE success metrics
         successful_runs = [r for r in self.results if r["fire_achieved"]]
+        failed_runs = [r for r in self.results if not r["fire_achieved"]]
         success_rate = len(successful_runs) / len(self.results)
 
         # Calculate FIRE age statistics (only for successful runs)
@@ -66,6 +67,26 @@ class MonteCarloRunner:
             years_to_fire = [r["fire_age"] - starting_age for r in successful_runs]
             average_years_to_fire = float(np.mean(years_to_fire))
 
+        # Calculate risk metrics
+        # Shortfall: average gap below FIRE target for failed runs
+        shortfall_amount = None
+        if failed_runs:
+            fire_target = self.engine.profile.annual_expenses() / 0.04
+            shortfalls = [fire_target - r["final_portfolio_value"] for r in failed_runs]
+            shortfall_amount = float(np.mean(shortfalls))
+
+        # Max drawdown: largest peak-to-trough decline across all runs
+        max_drawdown = 0.0
+        for result in self.results:
+            history = result["portfolio_history"]
+            if len(history) > 0:
+                peak = history[0]
+                for value in history:
+                    if value > peak:
+                        peak = value
+                    drawdown = (peak - value) / peak if peak > 0 else 0.0
+                    max_drawdown = max(max_drawdown, drawdown)
+
         return MonteCarloSimResults(
             success_rate=success_rate,
             median_fire_age=median_fire_age,
@@ -74,8 +95,8 @@ class MonteCarloRunner:
             fire_age_percentiles=fire_age_percentiles,
             worst_case_portfolio=min(final_values),
             best_case_portfolio=max(final_values),
-            shortfall_amount=None,  # TODO: Task 3
-            max_drawdown=0.0,  # TODO: Task 3
+            shortfall_amount=shortfall_amount,
+            max_drawdown=max_drawdown,
             strategy_name=self.engine.strategy.name,
             input_params=self.engine.profile,
             n_simulations=self.n_simulations,

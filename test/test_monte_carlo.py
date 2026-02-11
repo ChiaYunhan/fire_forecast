@@ -134,3 +134,42 @@ class TestMonteCarloFIREMetrics:
             assert results.median_fire_age is None
             assert results.average_years_to_fire is None
             assert results.fire_age_percentiles == {}
+
+
+class TestMonteCarloRiskMetrics:
+    def test_shortfall_amount_calculated(self, sample_portfolio):
+        """Shortfall amount is calculated for failed runs"""
+        # Create profile likely to fail
+        fail_profile = FinancialProfile(
+            income=50000.0,
+            expenses_rate=0.9,
+            savings_rate=0.1,
+            portfolio=sample_portfolio,
+            age=40,
+            target_age=50,
+        )
+
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(fail_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        # If there are failures, shortfall should be calculated
+        if results.success_rate < 1.0:
+            assert results.shortfall_amount is not None
+            assert results.shortfall_amount > 0
+
+    def test_max_drawdown_positive(self, sample_profile):
+        """Max drawdown is calculated and non-negative"""
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(sample_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        assert results.max_drawdown >= 0.0
+        # Max drawdown is a percentage, shouldn't exceed 1.0 typically
+        assert results.max_drawdown <= 1.0
