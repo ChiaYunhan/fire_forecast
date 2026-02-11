@@ -1,5 +1,7 @@
 from src.models import Asset, Portfolio, FinancialProfile
 from src.SimulationEngine import SimulationEngine
+from src.MonteCarloRunner import MonteCarloRunner
+from src.SensitivityAnalyzer import SensitivityAnalyzer
 from src.Strategy.aggressive import AggressiveStrategy
 from src.Strategy.balanced import BalancedStrategy
 from src.Strategy.conservative import ConservativeStrategy
@@ -36,7 +38,8 @@ def main():
     )
 
     print_summary(profile)
-    run_simulations(profile)
+    run_monte_carlo_analysis(profile)
+    run_sensitivity_analysis(profile)
 
 
 def print_summary(profile: FinancialProfile):
@@ -67,11 +70,11 @@ def print_summary(profile: FinancialProfile):
     print("\n" + "=" * 50)
 
 
-def run_simulations(profile: FinancialProfile):
-    """Run simulations with all three strategies and compare results."""
-    print("\n" + "=" * 50)
-    print("  Running Simulations (Single Run per Strategy)")
-    print("=" * 50)
+def run_monte_carlo_analysis(profile: FinancialProfile):
+    """Run Monte Carlo simulations with all three strategies."""
+    print("\n" + "=" * 60)
+    print("  Monte Carlo Analysis (1,000 simulations per strategy)")
+    print("=" * 60)
 
     strategies = [
         AggressiveStrategy(),
@@ -81,21 +84,58 @@ def run_simulations(profile: FinancialProfile):
 
     for strategy in strategies:
         engine = SimulationEngine(profile, strategy)
-        results = engine.run()
+        runner = MonteCarloRunner(engine, n_simulations=1000, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
 
         print(f"\n  Strategy: {strategy.name}")
         print(f"  Risk Multiplier: {strategy.get_risk_multiplier()}x")
-        print("-" * 50)
-        print(f"  Final Portfolio Value: ${results['final_portfolio_value']:>15,.2f}")
-        print(f"  FIRE Target (25x expenses): ${results['fire_target']:>12,.2f}")
-        print(f"  FIRE Achieved: {results['fire_achieved']}")
-        print(f"  Years Simulated: {results['years_simulated']}")
-        print(f"  Final Age: {results['final_age']}")
+        print("-" * 60)
+        print(f"  FIRE Success Rate: {results.success_rate:>8.1%}")
 
-    print("\n" + "=" * 50)
-    print("  Note: Single runs show high variance due to randomness.")
-    print("  Monte Carlo (Phase 3) will run thousands of simulations.")
-    print("=" * 50 + "\n")
+        if results.median_fire_age:
+            print(f"  Median FIRE Age: {results.median_fire_age:>10}")
+            print(f"  Avg Years to FIRE: {results.average_years_to_fire:>8.1f}")
+
+        print(f"\n  Portfolio Value Percentiles:")
+        print(f"    10th: ${results.portfolio_percentiles[10]:>15,.2f}")
+        print(f"    25th: ${results.portfolio_percentiles[25]:>15,.2f}")
+        print(f"    50th: ${results.portfolio_percentiles[50]:>15,.2f}")
+        print(f"    75th: ${results.portfolio_percentiles[75]:>15,.2f}")
+        print(f"    90th: ${results.portfolio_percentiles[90]:>15,.2f}")
+
+        print(f"\n  Risk Metrics:")
+        print(f"    Best Case:  ${results.best_case_portfolio:>15,.2f}")
+        print(f"    Worst Case: ${results.worst_case_portfolio:>15,.2f}")
+        print(f"    Max Drawdown: {results.max_drawdown:>13.1%}")
+        if results.shortfall_amount:
+            print(f"    Avg Shortfall: ${results.shortfall_amount:>13,.2f}")
+
+    print("\n" + "=" * 60 + "\n")
+
+
+def run_sensitivity_analysis(profile: FinancialProfile):
+    """Demonstrate sensitivity analysis on savings rate."""
+    print("\n" + "=" * 60)
+    print("  Sensitivity Analysis: Impact of Savings Rate")
+    print("=" * 60)
+
+    analyzer = SensitivityAnalyzer(profile, BalancedStrategy())
+
+    savings_rates = [0.2, 0.3, 0.4, 0.5, 0.6]
+    results = analyzer.sweep_savings_rate(
+        rates=savings_rates,
+        n_simulations=500,
+        seed=42
+    )
+
+    print("\n  Savings Rate  →  FIRE Success Rate")
+    print("-" * 60)
+    for rate, result in zip(savings_rates, results):
+        print(f"     {rate:>4.0%}                  {result.success_rate:>6.1%}")
+
+    print("\n" + "=" * 60 + "\n")
 
 
 if __name__ == "__main__":
