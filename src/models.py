@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Optional
 
 
 @dataclass
@@ -39,3 +39,34 @@ class FinancialProfile:
         total = self.expenses_rate + self.savings_rate
         if abs(total - 1) > 0.01:
             raise ValueError("Expenses and Savings rate do not equal to 1.0")
+
+
+@dataclass
+class MonteCarloSimResults:
+    success_rate: float
+    median_fire_age: Optional[int]
+    average_years_to_fire: Optional[float]
+
+    # Distribution metrics
+    portfolio_percentiles: Dict[int, float]
+    fire_age_percentiles: Dict[int, int]
+    worst_case_portfolio: float
+    best_case_portfolio: float
+
+    # risk
+    shortfall_amount: Optional[float]
+    max_drawdown: float
+
+    # Sensitivity analysis
+    strategy_name: str
+    input_params: FinancialProfile
+    n_simulations: int
+    np_seed: int
+
+    # charting
+    annual_trajectories: List[List[float]]
+
+    failure_rate: float = 0.0
+
+    def __post_init__(self):
+        self.failure_rate = 1 - self.success_rate

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import random
+import numpy as np
 
 from ..models import Portfolio
 
@@ -58,7 +58,7 @@ class InvestmentStrategy(ABC):
 
             # Add randomness based on volatility * risk multiplier
             volatility = asset.volatility * risk_mult
-            random_shock = random.gauss(0, volatility)
+            random_shock = np.random.normal(0, volatility)
 
             # Weighted by allocation
             asset_return = (expected + random_shock) * asset.allocation

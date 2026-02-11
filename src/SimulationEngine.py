@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from .Strategy.base import InvestmentStrategy
 from .models import FinancialProfile
 
@@ -20,6 +22,10 @@ class SimulationEngine:
         self.current_portfolio_value: float = 0.0
         self.current_age: int = 0
         self.year_count: int = 0
+
+        self.portfolio_history: List[float] = []
+        self.fire_age: Optional[int] = None
+        self.fire_target = self.profile.annual_expenses() / 0.04
 
     def run(self) -> dict:
         """
@@ -60,6 +66,11 @@ class SimulationEngine:
         self.current_age += 1
         self.year_count += 1
 
+        self.portfolio_history.append(self.current_portfolio_value)
+
+        if self.current_portfolio_value >= self.fire_target and self.fire_age is None:
+            self.fire_age = self.current_age
+
     def collect_results(self) -> dict:
         """
         Gather final simulation outcomes.
@@ -71,16 +82,22 @@ class SimulationEngine:
             - years_simulated: number of years simulated
             - final_age: age at end of simulation
         """
-        # Calculate if FIRE was achieved
-        # Rule: portfolio value >= 25x annual expenses (4% withdrawal rule)
-        withdrawal_rate = 0.04
-        fire_target = self.profile.annual_expenses() / withdrawal_rate
-        fire_achieved = self.current_portfolio_value >= fire_target
 
         return {
             "final_portfolio_value": self.current_portfolio_value,
-            "fire_achieved": fire_achieved,
+            "fire_target": self.fire_target,
+            "fire_achieved": True if self.fire_age else False,
             "years_simulated": self.year_count,
             "final_age": self.current_age,
-            "fire_target": fire_target,
+            "fire_age": self.fire_age,
+            "portfolio_history": self.portfolio_history,
         }
+
+    def reset(self):
+        # Simulation state (initialized in setup())
+        self.current_portfolio_value: float = 0.0
+        self.current_age: int = 0
+        self.year_count: int = 0
+
+        self.portfolio_history: List[float] = []
+        self.fire_age: Optional[int] = None
