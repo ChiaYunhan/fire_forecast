@@ -41,13 +41,39 @@ class MonteCarloRunner:
             90: float(np.percentile(final_values, 90)),
         }
 
-        # Placeholder for remaining fields (will implement in next tasks)
+        # Calculate FIRE success metrics
+        successful_runs = [r for r in self.results if r["fire_achieved"]]
+        success_rate = len(successful_runs) / len(self.results)
+
+        # Calculate FIRE age statistics (only for successful runs)
+        fire_age_percentiles = {}
+        median_fire_age = None
+        average_years_to_fire = None
+
+        if successful_runs:
+            fire_ages = [r["fire_age"] for r in successful_runs]
+            fire_age_percentiles = {
+                10: int(np.percentile(fire_ages, 10)),
+                25: int(np.percentile(fire_ages, 25)),
+                50: int(np.percentile(fire_ages, 50)),
+                75: int(np.percentile(fire_ages, 75)),
+                90: int(np.percentile(fire_ages, 90)),
+            }
+            median_fire_age = fire_age_percentiles[50]
+
+            # Average years to FIRE from starting age
+            starting_age = self.engine.profile.age
+            years_to_fire = [r["fire_age"] - starting_age for r in successful_runs]
+            average_years_to_fire = float(np.mean(years_to_fire))
+
+        from src.models import MonteCarloSimResults
+
         return MonteCarloSimResults(
-            success_rate=0.0,  # TODO: Task 2
-            median_fire_age=None,  # TODO: Task 2
-            average_years_to_fire=None,  # TODO: Task 2
+            success_rate=success_rate,
+            median_fire_age=median_fire_age,
+            average_years_to_fire=average_years_to_fire,
             portfolio_percentiles=portfolio_percentiles,
-            fire_age_percentiles={},  # TODO: Task 2
+            fire_age_percentiles=fire_age_percentiles,
             worst_case_portfolio=min(final_values),
             best_case_portfolio=max(final_values),
             shortfall_amount=None,  # TODO: Task 3
