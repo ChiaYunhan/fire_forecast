@@ -219,6 +219,71 @@ class TestMonteCarloAnnualTrajectories:
         assert all(len(traj) == years_simulated for traj in results.annual_trajectories)
 
 
+class TestMonteCarloEdgeCases:
+    def test_single_simulation_run(self, sample_profile):
+        """Monte Carlo works with n_simulations=1"""
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(sample_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=1, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        # Should still compute results without errors
+        assert results.n_simulations == 1
+        assert results.success_rate in [0.0, 1.0]  # Either succeeded or failed
+
+    def test_all_runs_succeed(self, sample_portfolio):
+        """Handles case where all runs achieve FIRE"""
+        # Very high savings, long timeline
+        success_profile = FinancialProfile(
+            income=200000.0,
+            expenses_rate=0.2,
+            savings_rate=0.8,
+            portfolio=sample_portfolio,
+            age=25,
+            target_age=60,
+        )
+
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(success_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        # All should succeed
+        assert results.success_rate == 1.0
+        assert results.shortfall_amount is None
+        assert results.median_fire_age is not None
+
+    def test_all_runs_fail(self, sample_portfolio):
+        """Handles case where no runs achieve FIRE"""
+        # Very low savings, short timeline
+        fail_profile = FinancialProfile(
+            income=40000.0,
+            expenses_rate=0.95,
+            savings_rate=0.05,
+            portfolio=sample_portfolio,
+            age=40,
+            target_age=45,
+        )
+
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(fail_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        # All should fail
+        assert results.success_rate == 0.0
+        assert results.median_fire_age is None
+        assert results.average_years_to_fire is None
+        assert len(results.fire_age_percentiles) == 0
+        assert results.shortfall_amount is not None
+
+
 class TestMonteCarloIntegration:
     def test_seed_preservation(self, sample_profile):
         """Seed is preserved in results for reproducibility"""
