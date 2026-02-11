@@ -89,6 +89,9 @@ class MonteCarloRunner:
                     drawdown = (peak - value) / peak if peak > 0 else 0.0
                     max_drawdown = max(max_drawdown, drawdown)
 
+        # Capture annual trajectories for charting (Phase 4)
+        annual_trajectories = [result["portfolio_history"] for result in self.results]
+
         return MonteCarloSimResults(
             success_rate=success_rate,
             median_fire_age=median_fire_age,
@@ -103,5 +106,5 @@ class MonteCarloRunner:
             input_params=self.engine.profile,
             n_simulations=self.n_simulations,
             np_seed=42,  # Will fix in later task
-            annual_trajectories=[],  # TODO: Task 4
+            annual_trajectories=annual_trajectories,
         )

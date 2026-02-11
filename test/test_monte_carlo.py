@@ -201,3 +201,19 @@ class TestMonteCarloRiskMetrics:
         # Max drawdown should be valid (0.0-1.0) even with zero starting value
         assert results.max_drawdown >= 0.0
         assert results.max_drawdown <= 1.0
+
+
+class TestMonteCarloAnnualTrajectories:
+    def test_annual_trajectories_captured(self, sample_profile):
+        """Annual trajectories list matches number of simulations"""
+        strategy = BalancedStrategy()
+        engine = SimulationEngine(sample_profile, strategy)
+        runner = MonteCarloRunner(engine, n_simulations=10, seed=42)
+
+        runner.run_simulations()
+        results = runner.aggregate_results()
+
+        assert len(results.annual_trajectories) == 10
+        # Each trajectory should have values for each year
+        years_simulated = sample_profile.target_age - sample_profile.age
+        assert all(len(traj) == years_simulated for traj in results.annual_trajectories)
