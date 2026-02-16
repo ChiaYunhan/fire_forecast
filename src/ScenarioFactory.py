@@ -1,10 +1,6 @@
 """Factory for creating domain objects from scenario configurations."""
 from src.ScenarioConfig import ScenarioConfig
 from src.models import Asset, Portfolio, FinancialProfile
-from src.Strategy.base import InvestmentStrategy
-from src.Strategy.aggressive import AggressiveStrategy
-from src.Strategy.balanced import BalancedStrategy
-from src.Strategy.conservative import ConservativeStrategy
 
 
 class ScenarioFactory:
@@ -12,14 +8,16 @@ class ScenarioFactory:
 
     def create_profile(self, config: ScenarioConfig) -> FinancialProfile:
         """Create FinancialProfile from config."""
-        # Create assets
+        # Create assets with optional costs
         assets = []
         for asset_data in config.portfolio_data["assets"]:
             asset = Asset(
                 name=asset_data["name"],
                 allocation=asset_data["allocation"],
                 expected_return=asset_data["expected_return"],
-                volatility=asset_data["volatility"]
+                volatility=asset_data["volatility"],
+                costs=asset_data.get("costs"),  # Optional
+                risk_metrics=asset_data.get("risk_metrics")  # Optional
             )
             assets.append(asset)
 
@@ -41,16 +39,3 @@ class ScenarioFactory:
         )
 
         return profile
-
-    def create_strategy(self, strategy_name: str) -> InvestmentStrategy:
-        """Create strategy from name."""
-        strategies = {
-            "aggressive": AggressiveStrategy,
-            "balanced": BalancedStrategy,
-            "conservative": ConservativeStrategy
-        }
-
-        if strategy_name not in strategies:
-            raise ValueError(f"Unknown strategy: {strategy_name}")
-
-        return strategies[strategy_name]()

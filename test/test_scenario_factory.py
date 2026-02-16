@@ -2,9 +2,6 @@ import pytest
 from src.ScenarioFactory import ScenarioFactory
 from src.ScenarioConfig import ScenarioConfig
 from src.models import FinancialProfile
-from src.Strategy.aggressive import AggressiveStrategy
-from src.Strategy.balanced import BalancedStrategy
-from src.Strategy.conservative import ConservativeStrategy
 
 
 def test_create_profile_from_config(tmp_path):
@@ -41,24 +38,3 @@ simulation:
     assert profile.target_age == 55
     assert profile.income == 80000
     assert len(profile.portfolio.composition) == 1
-
-
-def test_create_strategy_from_config():
-    """Test creating strategy from config."""
-    factory = ScenarioFactory()
-
-    aggressive = factory.create_strategy("aggressive")
-    balanced = factory.create_strategy("balanced")
-    conservative = factory.create_strategy("conservative")
-
-    assert isinstance(aggressive, AggressiveStrategy)
-    assert isinstance(balanced, BalancedStrategy)
-    assert isinstance(conservative, ConservativeStrategy)
-
-
-def test_create_strategy_invalid_name():
-    """Test error on invalid strategy name."""
-    factory = ScenarioFactory()
-
-    with pytest.raises(ValueError, match="Unknown strategy"):
-        factory.create_strategy("invalid_strategy")
