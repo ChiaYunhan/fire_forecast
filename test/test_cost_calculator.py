@@ -1,5 +1,5 @@
 import pytest
-from src.cost_calculator import apply_ter, apply_trading_fee
+from src.SimulationEngine import apply_ter, apply_trading_fee
 
 
 class TestCostCalculator:

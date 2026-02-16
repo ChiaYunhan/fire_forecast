@@ -1,5 +1,5 @@
 import pytest
-from src.validators import validate_asset_costs
+from src.models import validate_asset_costs
 
 
 class TestAssetCostValidation:
