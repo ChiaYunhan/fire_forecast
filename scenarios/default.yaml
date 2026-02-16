@@ -1,0 +1,25 @@
+profile:
+  age: 25
+  target_age: 45
+  income: 50056.92
+  expenses_rate: 0.58
+  savings_rate: 0.42
+
+portfolio:
+  total_value: 0.0
+  allocation_method: aggressive
+  assets:
+    - name: "VTI (Total Stock Market)"
+      allocation: 0.80
+      expected_return: 0.10
+      volatility: 0.15
+    - name: "BND (Total Bond Market)"
+      allocation: 0.20
+      expected_return: 0.04
+      volatility: 0.04
+
+strategy: balanced
+
+simulation:
+  n_simulations: 10000
+  seed: 42
