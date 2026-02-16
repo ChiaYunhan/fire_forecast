@@ -8,6 +8,8 @@ class Asset:
     allocation: float
     expected_return: float
     volatility: float
+    costs: Optional[Dict[str, float]] = None
+    risk_metrics: Optional[Dict[str, float]] = None
 
 
 @dataclass
