@@ -118,6 +118,10 @@ class MonteCarloSimResults:
     # charting
     annual_trajectories: List[List[float]]
 
+    # Portfolio metrics
+    expected_portfolio_return: float
+    portfolio_volatility: float
+
     failure_rate: float = 0.0
 
     def __post_init__(self):

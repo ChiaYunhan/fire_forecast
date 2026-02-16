@@ -1,5 +1,5 @@
 import pytest
-from src.models import Asset, Portfolio, FinancialProfile
+from src.models import Asset, Portfolio, FinancialProfile, MonteCarloSimResults
 
 
 class TestPortfolio:
@@ -79,3 +79,46 @@ class TestPortfolio:
         assert abs(result - expected) < 0.0001
         # Verify it's approximately 10.45%
         assert 0.104 < result < 0.105
+
+
+class TestMonteCarloSimResults:
+    def test_results_include_portfolio_metrics(self):
+        """Test that MonteCarloSimResults can store portfolio metrics."""
+        assets = [
+            Asset(name="VWRA", allocation=0.65, expected_return=0.07, volatility=0.15),
+            Asset(name="IGLN", allocation=0.25, expected_return=0.03, volatility=0.15),
+        ]
+        portfolio = Portfolio(
+            composition=assets,
+            total_value=0.0,
+            allocation_methods="proportional"
+        )
+        profile = FinancialProfile(
+            income=50000,
+            expenses_rate=0.65,
+            savings_rate=0.35,
+            portfolio=portfolio,
+            age=25,
+            target_age=55
+        )
+
+        results = MonteCarloSimResults(
+            success_rate=0.85,
+            median_fire_age=45,
+            average_years_to_fire=20.0,
+            portfolio_percentiles={10: 100000, 50: 500000, 90: 1000000},
+            fire_age_percentiles={10: 40, 50: 45, 90: 50},
+            worst_case_portfolio=50000.0,
+            best_case_portfolio=2000000.0,
+            shortfall_amount=10000.0,
+            max_drawdown=0.35,
+            input_params=profile,
+            n_simulations=10000,
+            np_seed=42,
+            annual_trajectories=[],
+            expected_portfolio_return=0.0565,
+            portfolio_volatility=0.1045
+        )
+
+        assert results.expected_portfolio_return == 0.0565
+        assert results.portfolio_volatility == 0.1045
