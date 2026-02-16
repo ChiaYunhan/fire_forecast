@@ -43,6 +43,15 @@ class Portfolio:
     total_value: float
     allocation_methods: str
 
+    def expected_return(self) -> float:
+        """
+        Calculate weighted average expected return of the portfolio.
+
+        Returns:
+            Expected annual return as decimal (e.g., 0.0565 for 5.65%)
+        """
+        return sum(asset.allocation * asset.expected_return for asset in self.composition)
+
 
 @dataclass
 class FinancialProfile:
