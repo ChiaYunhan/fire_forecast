@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional
+import math
 
 
 @dataclass
@@ -51,6 +52,22 @@ class Portfolio:
             Expected annual return as decimal (e.g., 0.0565 for 5.65%)
         """
         return sum(asset.allocation * asset.expected_return for asset in self.composition)
+
+    def volatility(self) -> float:
+        """
+        Calculate portfolio volatility using simplified approach.
+
+        Assumes zero correlation between assets (conservative estimate).
+        Formula: sqrt(sum of (allocation^2 * volatility^2))
+
+        Returns:
+            Portfolio volatility as decimal (e.g., 0.1045 for 10.45%)
+        """
+        variance = sum(
+            (asset.allocation ** 2) * (asset.volatility ** 2)
+            for asset in self.composition
+        )
+        return math.sqrt(variance)
 
 
 @dataclass
