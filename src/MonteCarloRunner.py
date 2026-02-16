@@ -122,6 +122,11 @@ class MonteCarloRunner:
         # Capture annual trajectories for charting (Phase 4)
         annual_trajectories = [result["portfolio_history"] for result in self.results]
 
+        # Calculate portfolio metrics from the profile's portfolio
+        portfolio = self.engine.profile.portfolio
+        expected_return = portfolio.expected_return()
+        volatility = portfolio.volatility()
+
         return MonteCarloSimResults(
             success_rate=success_rate,
             median_fire_age=median_fire_age,
@@ -136,4 +141,6 @@ class MonteCarloRunner:
             n_simulations=self.n_simulations,
             np_seed=self.seed,
             annual_trajectories=annual_trajectories,
+            expected_portfolio_return=expected_return,
+            portfolio_volatility=volatility,
         )
