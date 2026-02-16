@@ -17,39 +17,37 @@ FIRE Forecast Engine — a Python CLI tool that runs Monte Carlo simulations aga
 
 ## Architecture
 
-**Current state:** Phase 3 (Monte Carlo implementation). Weeks 1-2 complete: domain models, strategies, and single simulation engine working. See `docs/ROADMAP.md` for phased build plan.
+**Current state:** Phase 3+ complete with cost modeling enhancement. Domain models, simulation engine, Monte Carlo runner, sensitivity analysis, and visualization all implemented. See `docs/ROADMAP.md` for phased build plan.
 
-**Entry point:** `main.py` — CLI that creates a sample profile, runs simulations with all three strategies, and displays results
+**Entry point:** `main.py` — CLI that loads YAML scenarios, runs Monte Carlo simulations, and displays results with visualizations
 
 **Implemented domain models** in `src/models.py`:
-- `Asset` — individual investment (name, allocation, expected return, volatility)
+- `Asset` — individual investment (name, allocation, expected return, volatility, optional costs)
+  - Optional `costs` dict with `ter` (Total Expense Ratio) and `trading_fee` fields
+  - Validates cost values are between 0-5%
 - `Portfolio` — composition of Assets (Portfolio *has* Assets, not inheritance)
 - `FinancialProfile` — complete financial situation (income, expenses, savings rate, portfolio, age, target FIRE age)
   - Validates that `expenses_rate + savings_rate ≈ 1.0`
   - Methods: `annual_savings()`, `annual_expenses()`
 
-**Implemented investment strategies** in `src/Strategy/`:
-- `InvestmentStrategy` ABC — defines interface for all strategies
-- `AggressiveStrategy` — 1.5x risk multiplier, higher volatility tolerance
-- `BalancedStrategy` — 1.1x risk multiplier, moderate approach
-- `ConservativeStrategy` — 0.8x risk multiplier, capital preservation focus
-
 **Implemented simulation engine** in `src/SimulationEngine.py`:
 - `SimulationEngine` — Template Method pattern with run/setup/simulate_year/collect_results lifecycle
-- Applies annual returns using selected strategy
+- Calculates portfolio returns using asset expected_return and volatility
+- Applies investment costs (TER annually, trading fees on contributions)
 - Calculates FIRE achievement (portfolio ≥ 25x annual expenses using 4% rule)
-- Returns comprehensive results dict
+- Returns comprehensive results dict with portfolio history
 
-**Planned components**:
-- `MonteCarloRunner` — executes N simulation runs with randomized market returns
-- `SimulationResults` — aggregates outcomes, percentile calculations
-- `ScenarioFactory` — creates profiles/strategies from YAML config (Factory pattern)
+**Implemented components**:
+- `MonteCarloRunner` — executes N simulation runs with randomized market returns, aggregates percentile results
+- `SensitivityAnalyzer` — sweeps parameter ranges (e.g., savings rates) to analyze impact on FIRE outcomes
+- `ScenarioFactory` — creates profiles from YAML config (Factory pattern)
+- `visualization` — generates projection fan charts and FIRE age distribution histograms
 
 ## Design Patterns
 
 The project deliberately exercises these OOP patterns:
 - **Composition over inheritance** — Portfolio contains Assets, Profile contains Portfolio
-- **Strategy pattern** — swappable investment strategies
+- **Data-driven configuration** — investment behavior defined in YAML (returns, volatility, costs), not hardcoded strategies
 - **Template Method** — simulation lifecycle
 - **Factory pattern** — scenario creation from config files
 

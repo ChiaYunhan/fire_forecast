@@ -5,7 +5,7 @@ A Python CLI tool that runs Monte Carlo simulations to project the probability o
 ## Features
 
 - **Monte Carlo Simulations**: Run thousands of market scenarios with randomized returns
-- **Multiple Investment Strategies**: Aggressive, Balanced, Conservative approaches
+- **Cost Modeling**: Accurately model investment costs (TER, trading fees) for realistic projections
 - **YAML Configuration**: Define custom scenarios easily
 - **Rich Visualizations**: Projection fan charts and FIRE age distribution histograms
 - **Sensitivity Analysis**: Test impact of changing savings rates
@@ -83,12 +83,16 @@ portfolio:
       allocation: 0.70
       expected_return: 0.09
       volatility: 0.15
+      costs:
+        ter: 0.0003  # 0.03% annual expense ratio
+        trading_fee: 0.0005  # 0.05% per trade
     - name: "Bond Index Fund"
       allocation: 0.30
       expected_return: 0.04
       volatility: 0.05
-
-strategy: balanced  # Options: aggressive, balanced, conservative
+      costs:
+        ter: 0.0003
+        trading_fee: 0.0005
 
 simulation:
   n_simulations: 10000
@@ -101,11 +105,14 @@ Then run:
 uv run python main.py --scenario scenarios/your_scenario.yaml
 ```
 
-## Investment Strategies
+## Cost Modeling
 
-- **Aggressive**: 1.5x risk multiplier, higher volatility tolerance, equity-focused
-- **Balanced**: 1.1x risk multiplier, moderate approach, mixed allocation
-- **Conservative**: 0.8x risk multiplier, capital preservation, bond-heavy
+The engine supports modeling investment costs for realistic projections:
+
+- **TER (Total Expense Ratio)**: Annual management fees applied to portfolio value (e.g., 0.0003 = 0.03%)
+- **Trading Fees**: Per-transaction costs applied to contributions (e.g., 0.0005 = 0.05%)
+
+Costs are optional - assets without cost data assume zero-cost investing.
 
 ## Running Tests
 
@@ -126,22 +133,17 @@ uv run pytest test/test_models.py -v
 fire_forecast/
 ├── src/
 │   ├── models.py              # Domain models (Asset, Portfolio, Profile)
-│   ├── SimulationEngine.py    # Core simulation engine
+│   ├── SimulationEngine.py    # Core simulation engine with cost application
 │   ├── MonteCarloRunner.py    # Monte Carlo orchestration
 │   ├── SensitivityAnalyzer.py # Sensitivity analysis
 │   ├── ScenarioConfig.py      # YAML config loader
 │   ├── ScenarioFactory.py     # Factory for creating objects
 │   ├── cli.py                 # CLI argument parsing
-│   ├── visualization.py       # Chart generation
-│   └── Strategy/
-│       ├── base.py           # Strategy ABC
-│       ├── aggressive.py
-│       ├── balanced.py
-│       └── conservative.py
-├── test/                     # Pytest test suite
-├── scenarios/                # YAML scenario definitions
-├── docs/                     # Documentation
-└── main.py                   # CLI entry point
+│   └── visualization.py       # Chart generation
+├── test/                      # Pytest test suite
+├── scenarios/                 # YAML scenario definitions
+├── docs/                      # Documentation
+└── main.py                    # CLI entry point
 ```
 
 ## Design Patterns
@@ -149,7 +151,7 @@ fire_forecast/
 This project demonstrates several OOP design patterns:
 
 - **Composition over Inheritance**: Portfolio contains Assets, Profile contains Portfolio
-- **Strategy Pattern**: Swappable investment strategies
+- **Data-Driven Configuration**: Investment behavior defined in YAML, not hardcoded
 - **Template Method**: Simulation engine lifecycle
 - **Factory Pattern**: Scenario creation from configuration
 
