@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from src.models import Asset, Portfolio, FinancialProfile
 from src.SimulationEngine import SimulationEngine
@@ -194,3 +195,61 @@ class TestSimulationEngineFullRun:
         engine.simulate_year()
 
         assert engine.current_portfolio_value > 0
+
+
+# New tests without strategy
+@pytest.fixture
+def simple_asset():
+    return Asset(
+        name="Test Asset",
+        allocation=1.0,
+        expected_return=0.07,
+        volatility=0.10
+    )
+
+
+@pytest.fixture
+def simple_portfolio(simple_asset):
+    return Portfolio(
+        composition=[simple_asset],
+        total_value=100000.0,
+        allocation_methods="100% test"
+    )
+
+
+@pytest.fixture
+def simple_profile(simple_portfolio):
+    return FinancialProfile(
+        income=60000.0,
+        expenses_rate=0.6,
+        savings_rate=0.4,
+        portfolio=simple_portfolio,
+        age=30,
+        target_age=31
+    )
+
+
+class TestSimulationEngineWithoutStrategy:
+    def test_engine_initializes_without_strategy(self, simple_profile):
+        """SimulationEngine can be created without strategy parameter"""
+        engine = SimulationEngine(simple_profile)
+        assert engine.profile == simple_profile
+        assert not hasattr(engine, 'strategy')
+
+    def test_calculate_portfolio_return_uses_asset_volatility(self, simple_profile):
+        """Returns are calculated using asset expected_return and volatility"""
+        np.random.seed(42)
+        engine = SimulationEngine(simple_profile)
+
+        # Generate returns to verify distribution
+        returns = [engine._calculate_portfolio_return() for _ in range(1000)]
+
+        import statistics
+        mean_return = statistics.mean(returns)
+        std_return = statistics.stdev(returns)
+
+        # Mean should be close to expected_return (0.07)
+        assert 0.06 < mean_return < 0.08
+
+        # Std dev should be close to volatility (0.10)
+        assert 0.09 < std_return < 0.11
