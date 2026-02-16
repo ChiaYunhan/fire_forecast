@@ -52,6 +52,10 @@ def main():
 
 def print_profile_summary(profile):
     """Print financial profile summary."""
+    portfolio = profile.portfolio
+    expected_return = portfolio.expected_return()
+    volatility = portfolio.volatility()
+
     print("=" * 60)
     print("  FIRE Forecast — Financial Profile")
     print("=" * 60)
@@ -60,6 +64,9 @@ def print_profile_summary(profile):
     print(f"\n  Income:        ${profile.income:>12,.2f}")
     print(f"  Savings Rate:   {profile.savings_rate:>11.0%}")
     print(f"  Annual Savings: ${profile.annual_savings():>10,.2f}")
+    print(f"\n  Portfolio Metrics:")
+    print(f"    Expected Return: {expected_return:>9.2%}")
+    print(f"    Volatility:      {volatility:>9.2%}")
     print("=" * 60)
 
 
