@@ -1,7 +1,7 @@
 profile:
   age: 25
-  target_age: 45
-  income: 75000
+  target_age: 55
+  income: 100000
   expenses_rate: 0.75
   savings_rate: 0.25
 
@@ -13,16 +13,16 @@ portfolio:
       expected_return: 0.07
       volatility: 0.15
       costs:
-        ter: 0.0022  # 0.22% annual expense ratio
-        trading_fee: 0.0005  # 0.05% per trade
+        ter: 0.0022 # 0.22% annual expense ratio
+        trading_fee: 0.0005 # 0.05% per trade
     - name: "IGLN"
       allocation: 0.25
       expected_return: 0.04
       volatility: 0.04
       costs:
-        ter: 0.0025  # 0.25% annual expense ratio
-        trading_fee: 0.0005  # 0.05% per trade
+        ter: 0.0025 # 0.25% annual expense ratio
+        trading_fee: 0.0005 # 0.05% per trade
 
 simulation:
-  n_simulations: 10000
+  n_simulations: 100000
   seed: 42
