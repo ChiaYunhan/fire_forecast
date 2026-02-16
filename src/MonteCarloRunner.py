@@ -132,9 +132,8 @@ class MonteCarloRunner:
             best_case_portfolio=max(final_values),
             shortfall_amount=shortfall_amount,
             max_drawdown=max_drawdown,
-            strategy_name=self.engine.strategy.name,
             input_params=self.engine.profile,
             n_simulations=self.n_simulations,
-            np_seed=self.seed,  # Use stored seed instead of hardcoded 42
+            np_seed=self.seed,
             annual_trajectories=annual_trajectories,
         )

@@ -3,7 +3,6 @@ import numpy as np
 from src.models import Asset, Portfolio, FinancialProfile
 from src.SimulationEngine import SimulationEngine
 from src.MonteCarloRunner import MonteCarloRunner
-from src.Strategy.balanced import BalancedStrategy
 
 
 @pytest.fixture
@@ -34,8 +33,7 @@ def sample_profile(sample_portfolio):
 class TestMonteCarloPortfolioPercentiles:
     def test_portfolio_percentiles_structure(self, sample_profile):
         """Percentiles dict contains all required keys (10, 25, 50, 75, 90)"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         runner.run_simulations()
@@ -46,8 +44,7 @@ class TestMonteCarloPortfolioPercentiles:
 
     def test_portfolio_percentiles_ordering(self, sample_profile):
         """Percentiles are in ascending order (10th < 25th < 50th < 75th < 90th)"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         runner.run_simulations()
@@ -60,8 +57,7 @@ class TestMonteCarloPortfolioPercentiles:
 class TestMonteCarloFIREMetrics:
     def test_success_rate_calculation(self, sample_profile):
         """Success rate is between 0 and 1"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         runner.run_simulations()
@@ -84,8 +80,7 @@ class TestMonteCarloFIREMetrics:
             target_age=55,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(success_profile, strategy)
+        engine = SimulationEngine(success_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         runner.run_simulations()
@@ -119,8 +114,7 @@ class TestMonteCarloFIREMetrics:
             target_age=45,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(fail_profile, strategy)
+        engine = SimulationEngine(fail_profile)
         runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
 
         runner.run_simulations()
@@ -149,8 +143,7 @@ class TestMonteCarloRiskMetrics:
             target_age=50,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(fail_profile, strategy)
+        engine = SimulationEngine(fail_profile)
         runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
 
         runner.run_simulations()
@@ -163,8 +156,7 @@ class TestMonteCarloRiskMetrics:
 
     def test_max_drawdown_positive(self, sample_profile):
         """Max drawdown is calculated and non-negative"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         runner.run_simulations()
@@ -191,8 +183,7 @@ class TestMonteCarloRiskMetrics:
             target_age=35,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(profile, strategy)
+        engine = SimulationEngine(profile)
         runner = MonteCarloRunner(engine, n_simulations=10, seed=42)
 
         runner.run_simulations()
@@ -206,8 +197,7 @@ class TestMonteCarloRiskMetrics:
 class TestMonteCarloAnnualTrajectories:
     def test_annual_trajectories_captured(self, sample_profile):
         """Annual trajectories list matches number of simulations"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=10, seed=42)
 
         runner.run_simulations()
@@ -222,8 +212,7 @@ class TestMonteCarloAnnualTrajectories:
 class TestMonteCarloEdgeCases:
     def test_single_simulation_run(self, sample_profile):
         """Monte Carlo works with n_simulations=1"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=1, seed=42)
 
         runner.run_simulations()
@@ -245,8 +234,7 @@ class TestMonteCarloEdgeCases:
             target_age=60,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(success_profile, strategy)
+        engine = SimulationEngine(success_profile)
         runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
 
         runner.run_simulations()
@@ -269,8 +257,7 @@ class TestMonteCarloEdgeCases:
             target_age=45,
         )
 
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(fail_profile, strategy)
+        engine = SimulationEngine(fail_profile)
         runner = MonteCarloRunner(engine, n_simulations=50, seed=42)
 
         runner.run_simulations()
@@ -287,8 +274,7 @@ class TestMonteCarloEdgeCases:
 class TestMonteCarloIntegration:
     def test_seed_preservation(self, sample_profile):
         """Seed is preserved in results for reproducibility"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=50, seed=12345)
 
         runner.run_simulations()
@@ -298,16 +284,15 @@ class TestMonteCarloIntegration:
 
     def test_deterministic_results_with_same_seed(self, sample_profile):
         """Same seed produces identical results"""
-        strategy = BalancedStrategy()
 
         # Run 1
-        engine1 = SimulationEngine(sample_profile, strategy)
+        engine1 = SimulationEngine(sample_profile)
         runner1 = MonteCarloRunner(engine1, n_simulations=50, seed=999)
         runner1.run_simulations()
         results1 = runner1.aggregate_results()
 
         # Run 2 with same seed
-        engine2 = SimulationEngine(sample_profile, strategy)
+        engine2 = SimulationEngine(sample_profile)
         runner2 = MonteCarloRunner(engine2, n_simulations=50, seed=999)
         runner2.run_simulations()
         results2 = runner2.aggregate_results()
@@ -318,8 +303,7 @@ class TestMonteCarloIntegration:
 
     def test_complete_monte_carlo_workflow(self, sample_profile):
         """End-to-end Monte Carlo workflow produces valid results"""
-        strategy = BalancedStrategy()
-        engine = SimulationEngine(sample_profile, strategy)
+        engine = SimulationEngine(sample_profile)
         runner = MonteCarloRunner(engine, n_simulations=100, seed=42)
 
         # Run simulations
@@ -331,7 +315,6 @@ class TestMonteCarloIntegration:
 
         # Verify all fields are populated correctly
         assert summary.n_simulations == 100
-        assert summary.strategy_name == "Balanced"
         assert 0.0 <= summary.success_rate <= 1.0
         assert len(summary.portfolio_percentiles) == 5
         assert summary.worst_case_portfolio <= summary.best_case_portfolio

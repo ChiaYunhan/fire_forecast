@@ -85,7 +85,6 @@ class MonteCarloSimResults:
     max_drawdown: float
 
     # Sensitivity analysis
-    strategy_name: str
     input_params: FinancialProfile
     n_simulations: int
     np_seed: int
