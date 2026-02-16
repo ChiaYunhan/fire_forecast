@@ -104,17 +104,42 @@ class SimulationEngine:
         Simulate one year of the financial journey.
 
         Steps:
-        1. Calculate annual return
-        2. Apply return to portfolio
-        3. Add annual savings
-        4. Increment age and year counter
+        1. Calculate net savings and apply trading fees
+        2. Add net savings to portfolio
+        3. Calculate annual return
+        4. Apply return to portfolio
+        5. Apply TER costs
+        6. Record state and check FIRE
         """
+        # Step 1: Calculate net savings after trading fees
+        annual_savings = self.profile.annual_savings()
+        net_savings = annual_savings
+
+        for asset in self.profile.portfolio.composition:
+            if asset.costs and "trading_fee" in asset.costs:
+                asset_contribution = annual_savings * asset.allocation
+                trading_fee = asset.costs["trading_fee"]
+                net_asset_contribution = apply_trading_fee(asset_contribution, trading_fee)
+                net_savings -= (asset_contribution - net_asset_contribution)
+
+        # Step 2: Add net savings
+        self.current_portfolio_value += net_savings
+
+        # Step 3: Calculate and apply return
         annual_return = self._calculate_portfolio_return()
-        self.current_portfolio_value *= 1 + annual_return
-        self.current_portfolio_value += self.profile.annual_savings()
+        self.current_portfolio_value *= (1 + annual_return)
+
+        # Step 4: Apply TER costs
+        for asset in self.profile.portfolio.composition:
+            if asset.costs and "ter" in asset.costs:
+                ter = asset.costs["ter"]
+                asset_value = self.current_portfolio_value * asset.allocation
+                ter_cost = asset_value * ter
+                self.current_portfolio_value -= ter_cost
+
+        # Step 5: Record and check FIRE
         self.current_age += 1
         self.year_count += 1
-
         self.portfolio_history.append(self.current_portfolio_value)
 
         if self.current_portfolio_value >= self.fire_target and self.fire_age is None:
