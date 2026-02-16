@@ -1,142 +1,147 @@
-from src.models import Asset, Portfolio, FinancialProfile
+"""FIRE Forecast Engine - Main entry point."""
+from pathlib import Path
+import sys
+
+from src.cli import parse_and_validate_args
+from src.ScenarioConfig import ScenarioConfig
+from src.ScenarioFactory import ScenarioFactory
 from src.SimulationEngine import SimulationEngine
 from src.MonteCarloRunner import MonteCarloRunner
-from src.SensitivityAnalyzer import SensitivityAnalyzer
-from src.Strategy.aggressive import AggressiveStrategy
-from src.Strategy.balanced import BalancedStrategy
-from src.Strategy.conservative import ConservativeStrategy
+from src.visualization import create_projection_fan_chart, create_fire_probability_chart
 
 
 def main():
-    # Sample ETF portfolio
-    stock_etf = Asset(
-        name="VTI (Total Stock Market)",
-        allocation=0.80,
-        expected_return=0.10,
-        volatility=0.15,
-    )
-    bond_etf = Asset(
-        name="BND (Total Bond Market)",
-        allocation=0.20,
-        expected_return=0.04,
-        volatility=0.04,
-    )
+    """Main entry point for FIRE Forecast Engine."""
+    # Parse command-line arguments
+    args = parse_and_validate_args()
 
-    portfolio = Portfolio(
-        composition=[stock_etf, bond_etf],
-        total_value=0.0,
-        allocation_methods="aggressive",
-    )
+    if args.verbose:
+        print(f"Loading scenario from: {args.scenario}")
 
-    profile = FinancialProfile(
-        income=50_056.92,
-        expenses_rate=0.58,
-        savings_rate=0.42,
-        portfolio=portfolio,
-        age=25,
-        target_age=45,
-    )
+    # Load configuration
+    config = ScenarioConfig.from_yaml(args.scenario)
+    factory = ScenarioFactory()
 
-    print_summary(profile)
-    run_monte_carlo_analysis(profile)
-    run_sensitivity_analysis(profile)
+    # Create profile and strategy
+    profile = factory.create_profile(config)
+    strategy = factory.create_strategy(config.strategy_name)
+
+    # Print profile summary
+    print_profile_summary(profile, strategy)
+
+    # Run Monte Carlo simulation
+    n_sims = config.simulation_params.get("n_simulations", 10000)
+    seed = config.simulation_params.get("seed", 42)
+
+    if args.verbose:
+        print(f"\nRunning {n_sims} Monte Carlo simulations...")
+
+    engine = SimulationEngine(profile, strategy)
+    runner = MonteCarloRunner(engine, n_simulations=n_sims, seed=seed)
+    runner.run_simulations()
+    results = runner.aggregate_results()
+
+    # Print results
+    print_results_summary(results, strategy)
+
+    # Generate charts if requested
+    if not args.no_charts:
+        generate_charts(runner, results, profile, args.output, args.verbose)
+
+    print("\nAnalysis complete!")
 
 
-def print_summary(profile: FinancialProfile):
-    print("=" * 50)
-    print("  FIRE Forecast — Financial Profile Summary")
-    print("=" * 50)
-
-    print(f"\n  Age: {profile.age} → Target FIRE Age: {profile.target_age}")
+def print_profile_summary(profile, strategy):
+    """Print financial profile summary."""
+    print("=" * 60)
+    print("  FIRE Forecast — Financial Profile")
+    print("=" * 60)
+    print(f"\n  Age: {profile.age} → Target: {profile.target_age}")
     print(f"  Years to FIRE: {profile.target_age - profile.age}")
-
-    print(f"\n  Income:       ${profile.income:>12,.2f}")
-    print(f"  Expenses Rate: {profile.expenses_rate:>12.0%}")
-    print(f"  Savings Rate:  {profile.savings_rate:>12.0%}")
-    print(f"  Annual Expenses: ${profile.annual_expenses():>10,.2f}")
-    print(f"  Annual Savings:  ${profile.annual_savings():>10,.2f}")
-
-    print(f"\n  Portfolio Value: ${profile.portfolio.total_value:>10,.2f}")
-    print(f"  Strategy: {profile.portfolio.allocation_methods}")
-    print(f"\n  Assets:")
-    for asset in profile.portfolio.composition:
-        print(f"    • {asset.name}")
-        print(
-            f"      Allocation: {asset.allocation:.0%} | "
-            f"Return: {asset.expected_return:.0%} | "
-            f"Volatility: {asset.volatility:.0%}"
-        )
-
-    print("\n" + "=" * 50)
-
-
-def run_monte_carlo_analysis(profile: FinancialProfile):
-    """Run Monte Carlo simulations with all three strategies."""
-    print("\n" + "=" * 60)
-    print("  Monte Carlo Analysis (1,000 simulations per strategy)")
+    print(f"\n  Income:        ${profile.income:>12,.2f}")
+    print(f"  Savings Rate:   {profile.savings_rate:>11.0%}")
+    print(f"  Annual Savings: ${profile.annual_savings():>10,.2f}")
+    print(f"\n  Strategy: {strategy.name}")
+    print(f"  Risk Multiplier: {strategy.get_risk_multiplier()}x")
     print("=" * 60)
 
-    strategies = [
-        AggressiveStrategy(),
-        BalancedStrategy(),
-        ConservativeStrategy(),
-    ]
 
-    for strategy in strategies:
-        engine = SimulationEngine(profile, strategy)
-        runner = MonteCarloRunner(engine, n_simulations=1000, seed=42)
-
-        runner.run_simulations()
-        results = runner.aggregate_results()
-
-        print(f"\n  Strategy: {strategy.name}")
-        print(f"  Risk Multiplier: {strategy.get_risk_multiplier()}x")
-        print("-" * 60)
-        print(f"  FIRE Success Rate: {results.success_rate:>8.1%}")
-
-        if results.median_fire_age:
-            print(f"  Median FIRE Age: {results.median_fire_age:>10}")
-            print(f"  Avg Years to FIRE: {results.average_years_to_fire:>8.1f}")
-
-        print(f"\n  Portfolio Value Percentiles:")
-        print(f"    10th: ${results.portfolio_percentiles[10]:>15,.2f}")
-        print(f"    25th: ${results.portfolio_percentiles[25]:>15,.2f}")
-        print(f"    50th: ${results.portfolio_percentiles[50]:>15,.2f}")
-        print(f"    75th: ${results.portfolio_percentiles[75]:>15,.2f}")
-        print(f"    90th: ${results.portfolio_percentiles[90]:>15,.2f}")
-
-        print(f"\n  Risk Metrics:")
-        print(f"    Best Case:  ${results.best_case_portfolio:>15,.2f}")
-        print(f"    Worst Case: ${results.worst_case_portfolio:>15,.2f}")
-        print(f"    Max Drawdown: {results.max_drawdown:>13.1%}")
-        if results.shortfall_amount:
-            print(f"    Avg Shortfall: ${results.shortfall_amount:>13,.2f}")
-
-    print("\n" + "=" * 60 + "\n")
-
-
-def run_sensitivity_analysis(profile: FinancialProfile):
-    """Demonstrate sensitivity analysis on savings rate."""
+def print_results_summary(results, strategy):
+    """Print Monte Carlo results summary."""
     print("\n" + "=" * 60)
-    print("  Sensitivity Analysis: Impact of Savings Rate")
+    print("  Monte Carlo Results")
+    print("=" * 60)
+    print(f"\n  FIRE Success Rate: {results.success_rate:>8.1%}")
+
+    if results.median_fire_age:
+        print(f"  Median FIRE Age: {results.median_fire_age:>10}")
+
+    print(f"\n  Portfolio Value Percentiles:")
+    print(f"    10th: ${results.portfolio_percentiles[10]:>15,.2f}")
+    print(f"    50th: ${results.portfolio_percentiles[50]:>15,.2f}")
+    print(f"    90th: ${results.portfolio_percentiles[90]:>15,.2f}")
     print("=" * 60)
 
-    analyzer = SensitivityAnalyzer(profile, BalancedStrategy())
 
-    savings_rates = [0.2, 0.3, 0.4, 0.5, 0.6]
-    results = analyzer.sweep_savings_rate(
-        rates=savings_rates,
-        n_simulations=500,
-        seed=42
+def generate_charts(runner, results, profile, output_dir, verbose):
+    """Generate and save/show visualization charts."""
+    import matplotlib.pyplot as plt
+
+    if verbose:
+        print("\nGenerating charts...")
+
+    # Projection fan chart
+    fig1 = create_projection_fan_chart(
+        runner,
+        title=f"Portfolio Projection (Age {profile.age} → {profile.target_age})"
     )
 
-    print("\n  Savings Rate  →  FIRE Success Rate")
-    print("-" * 60)
-    for rate, result in zip(savings_rates, results):
-        print(f"     {rate:>4.0%}                  {result.success_rate:>6.1%}")
+    # FIRE probability chart (calculate probabilities by age)
+    age_probs = calculate_fire_probabilities_by_age(runner, profile)
+    fig2 = create_fire_probability_chart(
+        age_probs,
+        target_age=profile.target_age,
+        title="FIRE Success Probability by Age"
+    )
 
-    print("\n" + "=" * 60 + "\n")
+    # Save or show charts
+    if output_dir:
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        fig1.savefig(output_path / "projection_fan_chart.png", dpi=150)
+        fig2.savefig(output_path / "fire_probability.png", dpi=150)
+
+        print(f"\nCharts saved to: {output_dir}")
+    else:
+        plt.show()
+
+
+def calculate_fire_probabilities_by_age(runner, profile):
+    """Calculate FIRE success probability at each age."""
+    age_probs = {}
+    max_age = profile.target_age + 10
+
+    for age in range(profile.age, max_age + 1, 5):
+        year_idx = age - profile.age
+        if year_idx >= len(runner.all_runs[0]):
+            continue
+
+        successes = sum(
+            1 for run in runner.all_runs
+            if run[year_idx].get("fire_achieved", False)
+        )
+        age_probs[age] = successes / len(runner.all_runs)
+
+    return age_probs
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\nInterrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\nError: {e}", file=sys.stderr)
+        sys.exit(1)
