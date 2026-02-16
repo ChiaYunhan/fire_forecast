@@ -44,16 +44,18 @@ Scale to thousands of runs and extract meaningful insights.
 
 **Key OOP focus:** Inheritance, polymorphism (different market models), encapsulation of results
 
-## Week 4: Polish & Visualize (~6-8 hours)
+## Week 4: Polish & Visualize (~6-8 hours) ✅ COMPLETE
 
 Make it usable, configurable, and presentable.
 
-- [ ] YAML config file for defining scenarios
-- [ ] `ScenarioFactory` to create profiles/strategies from config
-- [ ] Matplotlib projection fan chart (percentile bands over time)
-- [ ] Matplotlib FIRE probability chart (probability vs age)
-- [ ] CLI argument parsing for running different scenarios
-- [ ] README with usage examples
-- [ ] Code cleanup and final refactor
+- [x] YAML config file for defining scenarios
+- [x] `ScenarioFactory` to create profiles/strategies from config
+- [x] Matplotlib projection fan chart (percentile bands over time)
+- [x] Matplotlib FIRE age distribution histogram (when people achieve FIRE)
+- [x] CLI argument parsing for running different scenarios
+- [x] README with usage examples
+- [x] Code cleanup and final refactor
+- [x] User guide and documentation
+- [x] End-to-end integration tests
 
 **Key OOP focus:** Factory pattern, clean separation of concerns
