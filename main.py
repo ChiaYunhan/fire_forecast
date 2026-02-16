@@ -22,12 +22,11 @@ def main():
     config = ScenarioConfig.from_yaml(args.scenario)
     factory = ScenarioFactory()
 
-    # Create profile and strategy
+    # Create profile
     profile = factory.create_profile(config)
-    strategy = factory.create_strategy(config.strategy_name)
 
     # Print profile summary
-    print_profile_summary(profile, strategy)
+    print_profile_summary(profile)
 
     # Run Monte Carlo simulation
     n_sims = config.simulation_params.get("n_simulations", 10000)
@@ -36,13 +35,13 @@ def main():
     if args.verbose:
         print(f"\nRunning {n_sims} Monte Carlo simulations...")
 
-    engine = SimulationEngine(profile, strategy)
+    engine = SimulationEngine(profile)
     runner = MonteCarloRunner(engine, n_simulations=n_sims, seed=seed)
     runner.run_simulations()
     results = runner.aggregate_results()
 
     # Print results
-    print_results_summary(results, strategy)
+    print_results_summary(results)
 
     # Generate charts if requested
     if not args.no_charts:
@@ -51,7 +50,7 @@ def main():
     print("\nAnalysis complete!")
 
 
-def print_profile_summary(profile, strategy):
+def print_profile_summary(profile):
     """Print financial profile summary."""
     print("=" * 60)
     print("  FIRE Forecast — Financial Profile")
@@ -61,12 +60,10 @@ def print_profile_summary(profile, strategy):
     print(f"\n  Income:        ${profile.income:>12,.2f}")
     print(f"  Savings Rate:   {profile.savings_rate:>11.0%}")
     print(f"  Annual Savings: ${profile.annual_savings():>10,.2f}")
-    print(f"\n  Strategy: {strategy.name}")
-    print(f"  Risk Multiplier: {strategy.get_risk_multiplier()}x")
     print("=" * 60)
 
 
-def print_results_summary(results, strategy):
+def print_results_summary(results):
     """Print Monte Carlo results summary."""
     print("\n" + "=" * 60)
     print("  Monte Carlo Results")

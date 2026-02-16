@@ -1,7 +1,35 @@
 from typing import List, Optional
+import numpy as np
 
-from .Strategy.base import InvestmentStrategy
 from .models import FinancialProfile
+
+
+def apply_ter(portfolio_value: float, ter: float) -> float:
+    """
+    Apply Total Expense Ratio (TER) to portfolio value.
+
+    Args:
+        portfolio_value: Current portfolio value
+        ter: Total Expense Ratio as decimal (e.g., 0.0019 for 0.19%)
+
+    Returns:
+        Portfolio value after TER deduction
+    """
+    return portfolio_value * (1 - ter)
+
+
+def apply_trading_fee(contribution: float, trading_fee: float) -> float:
+    """
+    Apply trading fee to a contribution/purchase amount.
+
+    Args:
+        contribution: Amount being invested
+        trading_fee: Trading fee as decimal (e.g., 0.0005 for 0.05%)
+
+    Returns:
+        Net contribution after trading fee deduction
+    """
+    return contribution * (1 - trading_fee)
 
 
 class SimulationEngine:
@@ -14,9 +42,8 @@ class SimulationEngine:
     3. collect_results() - gather final outcomes
     """
 
-    def __init__(self, profile: FinancialProfile, strategy: InvestmentStrategy):
+    def __init__(self, profile: FinancialProfile):
         self.profile = profile
-        self.strategy = strategy
 
         # Simulation state (initialized in setup())
         self.current_portfolio_value: float = 0.0
@@ -32,11 +59,10 @@ class SimulationEngine:
         Template Method: orchestrates the simulation lifecycle.
 
         Returns:
-            dict with simulation results (final_value, fire_achieved, years_simulated)
+            dict with simulation results
         """
         self.setup()
 
-        # Simulate each year until target age
         while self.current_age < self.profile.target_age:
             self.simulate_year()
 
@@ -48,24 +74,72 @@ class SimulationEngine:
         self.current_age = self.profile.age
         self.year_count = 0
 
+    def _calculate_portfolio_return(self) -> float:
+        """
+        Calculate weighted average return with volatility for the portfolio.
+
+        Generates a randomized return using normal distribution based on
+        each asset's expected return and volatility.
+
+        Returns:
+            The portfolio return for this year (e.g., 0.08 for 8%)
+        """
+        total_return = 0.0
+
+        for asset in self.profile.portfolio.composition:
+            # Base expected return
+            expected = asset.expected_return
+
+            # Add randomness based on asset's natural volatility
+            random_shock = np.random.normal(0, asset.volatility)
+
+            # Weighted by allocation
+            asset_return = (expected + random_shock) * asset.allocation
+            total_return += asset_return
+
+        return total_return
+
     def simulate_year(self) -> None:
         """
         Simulate one year of the financial journey.
 
         Steps:
-        1. Calculate annual return using the strategy
-        2. Apply return to current portfolio value
-        3. Add annual savings contribution
-        4. Increment age and year counter
+        1. Calculate net savings and apply trading fees
+        2. Add net savings to portfolio
+        3. Calculate annual return
+        4. Apply return to portfolio
+        5. Apply TER costs
+        6. Record state and check FIRE
         """
-        annual_return = self.strategy.calculate_annual_return(
-            self.profile.portfolio, self.year_count
-        )
-        self.current_portfolio_value *= 1 + annual_return
-        self.current_portfolio_value += self.profile.annual_savings()
+        # Step 1: Calculate net savings after trading fees
+        annual_savings = self.profile.annual_savings()
+        net_savings = annual_savings
+
+        for asset in self.profile.portfolio.composition:
+            if asset.costs and "trading_fee" in asset.costs:
+                asset_contribution = annual_savings * asset.allocation
+                trading_fee = asset.costs["trading_fee"]
+                net_asset_contribution = apply_trading_fee(asset_contribution, trading_fee)
+                net_savings -= (asset_contribution - net_asset_contribution)
+
+        # Step 2: Add net savings
+        self.current_portfolio_value += net_savings
+
+        # Step 3: Calculate and apply return
+        annual_return = self._calculate_portfolio_return()
+        self.current_portfolio_value *= (1 + annual_return)
+
+        # Step 4: Apply TER costs
+        for asset in self.profile.portfolio.composition:
+            if asset.costs and "ter" in asset.costs:
+                ter = asset.costs["ter"]
+                asset_value = self.current_portfolio_value * asset.allocation
+                ter_cost = asset_value * ter
+                self.current_portfolio_value -= ter_cost
+
+        # Step 5: Record and check FIRE
         self.current_age += 1
         self.year_count += 1
-
         self.portfolio_history.append(self.current_portfolio_value)
 
         if self.current_portfolio_value >= self.fire_target and self.fire_age is None:
@@ -76,13 +150,8 @@ class SimulationEngine:
         Gather final simulation outcomes.
 
         Returns:
-            dict containing:
-            - final_portfolio_value: ending portfolio value
-            - fire_achieved: whether FIRE goal was reached
-            - years_simulated: number of years simulated
-            - final_age: age at end of simulation
+            dict containing simulation results
         """
-
         return {
             "final_portfolio_value": self.current_portfolio_value,
             "fire_target": self.fire_target,
@@ -94,10 +163,9 @@ class SimulationEngine:
         }
 
     def reset(self):
-        # Simulation state (initialized in setup())
-        self.current_portfolio_value: float = 0.0
-        self.current_age: int = 0
-        self.year_count: int = 0
-
-        self.portfolio_history: List[float] = []
-        self.fire_age: Optional[int] = None
+        """Reset simulation state for next run."""
+        self.current_portfolio_value = 0.0
+        self.current_age = 0
+        self.year_count = 0
+        self.portfolio_history = []
+        self.fire_age = None

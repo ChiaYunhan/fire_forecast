@@ -10,7 +10,6 @@ class ScenarioConfig:
 
     profile_data: dict[str, Any]
     portfolio_data: dict[str, Any]
-    strategy_name: str
     simulation_params: dict[str, Any]
 
     def __post_init__(self):
@@ -32,6 +31,5 @@ class ScenarioConfig:
         return cls(
             profile_data=data.get("profile", {}),
             portfolio_data=data.get("portfolio", {}),
-            strategy_name=data.get("strategy", "balanced"),
             simulation_params=data.get("simulation", {})
         )

@@ -52,6 +52,51 @@ class TestAsset:
         assert sample_asset.expected_return == 0.08
         assert sample_asset.volatility == 0.15
 
+    def test_asset_creation_with_costs(self):
+        """Asset can be created with optional cost structure"""
+        asset = Asset(
+            name="VWRA",
+            allocation=0.75,
+            expected_return=0.07,
+            volatility=0.0862,
+            costs={"ter": 0.0019, "trading_fee": 0.0005}
+        )
+        assert asset.costs["ter"] == 0.0019
+        assert asset.costs["trading_fee"] == 0.0005
+
+    def test_asset_creation_without_costs(self):
+        """Asset defaults to None for costs if not provided"""
+        asset = Asset(
+            name="Simple Asset",
+            allocation=0.5,
+            expected_return=0.06,
+            volatility=0.10
+        )
+        assert asset.costs is None
+
+    def test_asset_creation_with_risk_metrics(self):
+        """Asset can store optional risk metrics"""
+        asset = Asset(
+            name="VWRA",
+            allocation=1.0,
+            expected_return=0.07,
+            volatility=0.0862,
+            risk_metrics={"semi_deviation": 0.0278, "correlation": 0.99}
+        )
+        assert asset.risk_metrics["semi_deviation"] == 0.0278
+        assert asset.risk_metrics["correlation"] == 0.99
+
+    def test_asset_with_invalid_ter_fails(self):
+        """Asset creation fails with invalid TER"""
+        with pytest.raises(ValueError, match="TER must be between"):
+            Asset(
+                name="Invalid",
+                allocation=1.0,
+                expected_return=0.07,
+                volatility=0.10,
+                costs={"ter": 0.10}  # 10% is too high
+            )
+
 
 # Portfolio tests
 class TestPortfolio:

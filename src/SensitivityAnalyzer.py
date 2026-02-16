@@ -2,7 +2,6 @@ from typing import List
 from dataclasses import replace
 
 from .models import FinancialProfile, MonteCarloSimResults
-from .Strategy.base import InvestmentStrategy
 from .SimulationEngine import SimulationEngine
 from .MonteCarloRunner import MonteCarloRunner
 
@@ -15,16 +14,14 @@ class SensitivityAnalyzer:
     their impact on success probability and FIRE timeline.
     """
 
-    def __init__(self, base_profile: FinancialProfile, strategy: InvestmentStrategy):
+    def __init__(self, base_profile: FinancialProfile):
         """
         Initialize analyzer with a base financial profile.
 
         Args:
             base_profile: The baseline financial profile
-            strategy: Investment strategy to use for all simulations
         """
         self.base_profile = base_profile
-        self.strategy = strategy
 
     def sweep_savings_rate(
         self, rates: List[float], n_simulations: int, seed: int
@@ -54,7 +51,7 @@ class SensitivityAnalyzer:
             )
 
             # Run Monte Carlo with this profile
-            engine = SimulationEngine(modified_profile, self.strategy)
+            engine = SimulationEngine(modified_profile)
             runner = MonteCarloRunner(engine, n_simulations=n_simulations, seed=seed)
             runner.run_simulations()
             result = runner.aggregate_results()

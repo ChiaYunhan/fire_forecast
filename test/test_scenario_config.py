@@ -31,7 +31,6 @@ simulation:
 
     assert config.profile_data["age"] == 30
     assert config.profile_data["target_age"] == 50
-    assert config.strategy_name == "aggressive"
     assert config.simulation_params["n_simulations"] == 1000
 
 
@@ -48,6 +47,5 @@ def test_validate_scenario_config():
         ScenarioConfig(
             profile_data=invalid_config["profile"],
             portfolio_data=invalid_config["portfolio"],
-            strategy_name=invalid_config["strategy"],
             simulation_params=invalid_config["simulation"]
         )

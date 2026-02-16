@@ -3,7 +3,6 @@ from src.models import Asset, Portfolio, FinancialProfile
 from src.SimulationEngine import SimulationEngine
 from src.MonteCarloRunner import MonteCarloRunner
 from src.SensitivityAnalyzer import SensitivityAnalyzer
-from src.Strategy.balanced import BalancedStrategy
 
 
 @pytest.fixture
@@ -30,7 +29,7 @@ def base_profile():
 class TestSensitivityAnalyzer:
     def test_savings_rate_sweep(self, base_profile):
         """Sweeping savings rate produces multiple results"""
-        analyzer = SensitivityAnalyzer(base_profile, BalancedStrategy())
+        analyzer = SensitivityAnalyzer(base_profile)
 
         # Sweep savings rates from 0.2 to 0.6 in steps of 0.1
         results = analyzer.sweep_savings_rate(
@@ -45,7 +44,7 @@ class TestSensitivityAnalyzer:
 
     def test_savings_rate_impact_on_success(self, base_profile):
         """Higher savings rates increase FIRE success probability"""
-        analyzer = SensitivityAnalyzer(base_profile, BalancedStrategy())
+        analyzer = SensitivityAnalyzer(base_profile)
 
         results = analyzer.sweep_savings_rate(
             rates=[0.2, 0.4, 0.6],
