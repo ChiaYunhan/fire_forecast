@@ -86,6 +86,17 @@ class TestAsset:
         assert asset.risk_metrics["semi_deviation"] == 0.0278
         assert asset.risk_metrics["correlation"] == 0.99
 
+    def test_asset_with_invalid_ter_fails(self):
+        """Asset creation fails with invalid TER"""
+        with pytest.raises(ValueError, match="TER must be between"):
+            Asset(
+                name="Invalid",
+                allocation=1.0,
+                expected_return=0.07,
+                volatility=0.10,
+                costs={"ter": 0.10}  # 10% is too high
+            )
+
 
 # Portfolio tests
 class TestPortfolio:

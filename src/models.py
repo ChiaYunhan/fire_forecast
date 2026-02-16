@@ -11,6 +11,10 @@ class Asset:
     costs: Optional[Dict[str, float]] = None
     risk_metrics: Optional[Dict[str, float]] = None
 
+    def __post_init__(self):
+        from .validators import validate_asset_costs
+        validate_asset_costs(self.costs)
+
 
 @dataclass
 class Portfolio:
