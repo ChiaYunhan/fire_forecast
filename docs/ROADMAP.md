@@ -57,9 +57,3 @@ Make it usable, configurable, and presentable.
 - [ ] Code cleanup and final refactor
 
 **Key OOP focus:** Factory pattern, clean separation of concerns
-
-## First 3 Tasks
-
-1. **Create project structure** — `pyproject.toml`, virtual env, `src/fire_forecast/` package layout
-2. **Implement `Asset` and `Portfolio`** — with `__init__`, `__repr__`, and basic methods + tests
-3. **Build `FinancialProfile`** — composes a Portfolio with income/expense data, calculates annual savings
