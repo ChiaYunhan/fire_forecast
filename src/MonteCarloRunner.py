@@ -13,6 +13,35 @@ class MonteCarloRunner:
         self.seed = seed  # Store seed for reproducibility
         self.results = []
 
+    @property
+    def all_runs(self) -> List[List[Dict]]:
+        """Return all simulation runs in visualization-compatible format.
+
+        Returns:
+            List of runs, where each run is a list of yearly data dicts
+        """
+        formatted_runs = []
+        for result in self.results:
+            run_data = []
+            for year_idx, portfolio_value in enumerate(result["portfolio_history"]):
+                run_data.append({
+                    "year": year_idx,
+                    "portfolio_value": portfolio_value,
+                    "fire_achieved": result.get("fire_achieved", False)
+                })
+            formatted_runs.append(run_data)
+        return formatted_runs
+
+    @property
+    def profile_age(self) -> int:
+        """Return the profile's starting age."""
+        return self.engine.profile.age
+
+    @property
+    def profile_target_age(self) -> int:
+        """Return the profile's target FIRE age."""
+        return self.engine.profile.target_age
+
     def run_simulations(self) -> List[Dict]:
         self.results = []
         for i in range(self.n_simulations):
