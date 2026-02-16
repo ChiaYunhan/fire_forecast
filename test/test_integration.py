@@ -33,7 +33,6 @@ portfolio:
       allocation: 0.30
       expected_return: 0.04
       volatility: 0.05
-strategy: balanced
 simulation:
   n_simulations: 100
   seed: 123
@@ -47,10 +46,9 @@ simulation:
     # Create objects via factory
     factory = ScenarioFactory()
     profile = factory.create_profile(config)
-    strategy = factory.create_strategy(config.strategy_name)
 
     # Run simulation
-    engine = SimulationEngine(profile, strategy)
+    engine = SimulationEngine(profile)
     runner = MonteCarloRunner(
         engine,
         n_simulations=config.simulation_params["n_simulations"],
