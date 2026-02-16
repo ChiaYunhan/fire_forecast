@@ -2,7 +2,7 @@ import pytest
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend for testing
 from matplotlib.figure import Figure
-from src.visualization import create_projection_fan_chart, create_fire_probability_chart
+from src.visualization import create_projection_fan_chart, create_fire_age_distribution
 
 
 class MockResults:
@@ -40,25 +40,22 @@ def test_create_projection_fan_chart():
     assert "Test Projection" in ax.get_title()
 
 
-def test_create_fire_probability_chart():
-    """Test creating FIRE probability chart."""
-    # Mock probability data by age
-    age_probabilities = {
-        40: 0.15,
-        45: 0.50,
-        50: 0.75,
-        55: 0.90,
-        60: 0.95
-    }
+def test_create_fire_age_distribution():
+    """Test creating FIRE age distribution histogram."""
+    # Mock FIRE ages from successful runs
+    fire_ages = [38, 40, 40, 42, 42, 42, 43, 45, 45, 47, 50]
 
-    fig = create_fire_probability_chart(
-        age_probabilities,
+    fig = create_fire_age_distribution(
+        fire_ages=fire_ages,
         target_age=45,
-        title="FIRE Probability"
+        median_fire_age=42,
+        success_rate=0.826,
+        title="Test FIRE Distribution"
     )
 
     assert isinstance(fig, Figure)
     assert len(fig.axes) == 1
     ax = fig.axes[0]
-    assert ax.get_xlabel() == "Age"
-    assert ax.get_ylabel() == "FIRE Success Probability (%)"
+    assert ax.get_xlabel() == "Age When FIRE Achieved"
+    assert ax.get_ylabel() == "Number of Simulations"
+    assert "Test FIRE Distribution" in ax.get_title()

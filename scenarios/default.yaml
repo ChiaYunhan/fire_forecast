@@ -2,12 +2,11 @@ profile:
   age: 25
   target_age: 45
   income: 50056.92
-  expenses_rate: 0.58
-  savings_rate: 0.42
+  expenses_rate: 0.6
+  savings_rate: 0.4
 
 portfolio:
   total_value: 0.0
-  allocation_method: aggressive
   assets:
     - name: "VTI (Total Stock Market)"
       allocation: 0.80

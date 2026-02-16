@@ -52,55 +52,63 @@ def create_projection_fan_chart(
     return fig
 
 
-def create_fire_probability_chart(
-    age_probabilities: dict[int, float],
+def create_fire_age_distribution(
+    fire_ages: list[int],
     target_age: int,
-    title: str = "FIRE Success Probability by Age"
+    median_fire_age: int | None,
+    success_rate: float,
+    title: str = "FIRE Age Distribution"
 ) -> Figure:
-    """Create a chart showing probability of FIRE success by age.
+    """Create a histogram showing distribution of FIRE achievement ages.
 
     Args:
-        age_probabilities: Dict mapping age to success probability (0.0-1.0)
+        fire_ages: List of ages when FIRE was achieved (successful runs only)
         target_age: Target FIRE age for highlighting
+        median_fire_age: Median age when FIRE was achieved
+        success_rate: Overall FIRE success rate (0.0-1.0)
         title: Chart title
 
     Returns:
         matplotlib Figure object
     """
-    ages = sorted(age_probabilities.keys())
-    probabilities = [age_probabilities[age] * 100 for age in ages]
-
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Plot probability curve
-    ax.plot(ages, probabilities, marker='o', linewidth=2,
-            markersize=8, color='green', label='Success Probability')
+    if not fire_ages:
+        # Handle case where no one achieved FIRE
+        ax.text(0.5, 0.5, 'No FIRE achieved in simulations',
+                ha='center', va='center', fontsize=14, transform=ax.transAxes)
+        ax.set_title(title)
+        return fig
 
-    # Highlight target age
-    if target_age in age_probabilities:
-        target_prob = age_probabilities[target_age] * 100
-        ax.axvline(target_age, color='red', linestyle='--',
-                   alpha=0.7, label=f'Target Age ({target_age})')
-        ax.axhline(target_prob, color='red', linestyle='--', alpha=0.5)
-        ax.plot(target_age, target_prob, marker='*',
-                markersize=15, color='red')
+    # Create histogram
+    min_age = min(fire_ages)
+    max_age = max(fire_ages)
+    bins = range(min_age, max_age + 2)  # +2 to include max_age
+
+    ax.hist(fire_ages, bins=bins, alpha=0.7, color='green',
+            edgecolor='black', label=f'FIRE Age Distribution ({success_rate:.1%} achieved)')
+
+    # Mark target age
+    ax.axvline(target_age, color='red', linestyle='--',
+               linewidth=2, alpha=0.7, label=f'Target Age ({target_age})')
+
+    # Mark median age
+    if median_fire_age:
+        ax.axvline(median_fire_age, color='blue', linestyle='--',
+                   linewidth=2, alpha=0.7, label=f'Median Age ({median_fire_age})')
 
     # Formatting
-    ax.set_xlabel("Age")
-    ax.set_ylabel("FIRE Success Probability (%)")
+    ax.set_xlabel("Age When FIRE Achieved")
+    ax.set_ylabel("Number of Simulations")
     ax.set_title(title)
-    ax.set_ylim(0, 105)
-    ax.grid(True, alpha=0.3)
+    ax.grid(True, alpha=0.3, axis='y')
     ax.legend()
 
-    # Add percentage labels on points
-    for age, prob in zip(ages, probabilities):
-        ax.annotate(f'{prob:.0f}%',
-                   (age, prob),
-                   textcoords="offset points",
-                   xytext=(0, 10),
-                   ha='center',
-                   fontsize=9)
+    # Add success rate annotation
+    ax.text(0.02, 0.98, f'Success Rate: {success_rate:.1%}',
+            transform=ax.transAxes, fontsize=10,
+            verticalalignment='top',
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
     plt.tight_layout()
     return fig

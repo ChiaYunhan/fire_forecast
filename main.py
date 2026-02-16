@@ -7,7 +7,7 @@ from src.ScenarioConfig import ScenarioConfig
 from src.ScenarioFactory import ScenarioFactory
 from src.SimulationEngine import SimulationEngine
 from src.MonteCarloRunner import MonteCarloRunner
-from src.visualization import create_projection_fan_chart, create_fire_probability_chart
+from src.visualization import create_projection_fan_chart, create_fire_age_distribution
 
 
 def main():
@@ -96,12 +96,14 @@ def generate_charts(runner, results, profile, output_dir, verbose):
         title=f"Portfolio Projection (Age {profile.age} → {profile.target_age})"
     )
 
-    # FIRE probability chart (calculate probabilities by age)
-    age_probs = calculate_fire_probabilities_by_age(runner, profile)
-    fig2 = create_fire_probability_chart(
-        age_probs,
+    # FIRE age distribution histogram
+    fire_ages = extract_fire_ages(runner)
+    fig2 = create_fire_age_distribution(
+        fire_ages=fire_ages,
         target_age=profile.target_age,
-        title="FIRE Success Probability by Age"
+        median_fire_age=results.median_fire_age,
+        success_rate=results.success_rate,
+        title="FIRE Age Distribution"
     )
 
     # Save or show charts
@@ -110,30 +112,20 @@ def generate_charts(runner, results, profile, output_dir, verbose):
         output_path.mkdir(parents=True, exist_ok=True)
 
         fig1.savefig(output_path / "projection_fan_chart.png", dpi=150)
-        fig2.savefig(output_path / "fire_probability.png", dpi=150)
+        fig2.savefig(output_path / "fire_age_distribution.png", dpi=150)
 
         print(f"\nCharts saved to: {output_dir}")
     else:
         plt.show()
 
 
-def calculate_fire_probabilities_by_age(runner, profile):
-    """Calculate FIRE success probability at each age."""
-    age_probs = {}
-    max_age = profile.target_age + 10
-
-    for age in range(profile.age, max_age + 1, 5):
-        year_idx = age - profile.age
-        if year_idx >= len(runner.all_runs[0]):
-            continue
-
-        successes = sum(
-            1 for run in runner.all_runs
-            if run[year_idx].get("fire_achieved", False)
-        )
-        age_probs[age] = successes / len(runner.all_runs)
-
-    return age_probs
+def extract_fire_ages(runner):
+    """Extract list of FIRE ages from successful simulation runs."""
+    fire_ages = []
+    for result in runner.results:
+        if result.get("fire_achieved", False):
+            fire_ages.append(result["fire_age"])
+    return fire_ages
 
 
 if __name__ == "__main__":
