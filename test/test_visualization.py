@@ -2,7 +2,7 @@ import pytest
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend for testing
 from matplotlib.figure import Figure
-from src.visualization import create_projection_fan_chart
+from src.visualization import create_projection_fan_chart, create_fire_probability_chart
 
 
 class MockResults:
@@ -38,3 +38,27 @@ def test_create_projection_fan_chart():
     assert ax.get_xlabel() == "Age"
     assert ax.get_ylabel() == "Portfolio Value ($)"
     assert "Test Projection" in ax.get_title()
+
+
+def test_create_fire_probability_chart():
+    """Test creating FIRE probability chart."""
+    # Mock probability data by age
+    age_probabilities = {
+        40: 0.15,
+        45: 0.50,
+        50: 0.75,
+        55: 0.90,
+        60: 0.95
+    }
+
+    fig = create_fire_probability_chart(
+        age_probabilities,
+        target_age=45,
+        title="FIRE Probability"
+    )
+
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 1
+    ax = fig.axes[0]
+    assert ax.get_xlabel() == "Age"
+    assert ax.get_ylabel() == "FIRE Success Probability (%)"
